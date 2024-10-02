@@ -1,0 +1,11 @@
+﻿Test.API/.vs
+Test.API/bin
+Test.API/obj
+Test.App/bin
+Test.Domain/bin
+Test.Persistance/bin
+Test.Persistance/obj
+Test.Domain/obj
+Test.App/obj
+Per/obj
+Per/bin/Debug
