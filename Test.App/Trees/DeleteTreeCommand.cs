@@ -13,7 +13,7 @@ public class DeleteTreeCommandHandler(ITestDbContext ctx) : IRequestHandler<Dele
     public async Task Handle(DeleteTreeCommand r, CancellationToken ct)
     {
         var tree = await ctx.Trees.FirstOrDefaultAsync(e => e.Id == r.TreeId)
-            ?? throw new SecureException("Not found");
+            ?? throw new SecureException("Tree not found");
 
         ctx.Trees.Remove(tree);
 

@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Test.App.Exceptions;
 using Test.Domain;
@@ -7,23 +9,28 @@ namespace Test.App.Trees;
 
 public class CreateTreeCommand : IRequest<int>
 {
-    public string? Name { get; set; } 
+    public string Name { get; set; } = null!;
+
 }
-public class CreateTreeCommandHandler(ITestDbContext ctx) : IRequestHandler<CreateTreeCommand, int>
+public class CreateTreeCommandValidator : AbstractValidator<CreateTreeCommand>
+{
+    public CreateTreeCommandValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty();
+    }
+}
+public class CreateTreeCommandHandler(ITestDbContext ctx, IMapper mapper) : IRequestHandler<CreateTreeCommand, int>
 {
     public async Task<int> Handle(CreateTreeCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(request.Name))
-            throw new SecureException("Name is empty");
-
         if (await ctx.Trees.AnyAsync(e => e.Name == request.Name))
             throw new SecureException("Tree with this name exists");
 
-        var tree = new Tree { Name = request.Name };
+        var tree = mapper.Map<Tree>(request);
 
         ctx.Trees.Add(tree);
 
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(CancellationToken.None);
 
         return tree.Id;
     }

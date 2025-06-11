@@ -1,14 +1,18 @@
+using System.Reflection;
 using Test.API.Exceptions;
 using Test.API.ServiceCollection;
+using Test.App.Trees;
 
 
 var builder = WebApplication.CreateBuilder(args);
+var appAssembly = typeof(CreateTreeCommand).GetTypeInfo().Assembly;
 
 builder.Services.AddProjectDbContexts(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAutoMapper(appAssembly);
 builder.Services.AddCustomCors();
 builder.Services.AddAuthentication();
 var app = builder.Build();
