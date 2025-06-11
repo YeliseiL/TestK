@@ -22,15 +22,44 @@ public class ExceptionHandlingMiddleware
         }
         catch (SecureException ex)
         {
-            await HandleExceptionAsync(context, dbContext, ex, ExceptionType.Secure);
+            await HandleSecureExceptionAsync(context, dbContext, ex);
         }
         catch (Exception ex)
         {
-            await HandleExceptionAsync(context, dbContext, ex, ExceptionType.Exception);
+            await HandleExceptionAsync(context, dbContext, ex);
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext context, TestDbContext dbContext, Exception ex, ExceptionType type)
+    private async Task HandleSecureExceptionAsync(HttpContext context, TestDbContext dbContext, Exception ex)
+    {
+        long eventId = await SaveException(context, dbContext, ex, ExceptionType.Secure);
+
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+        var response = new ExceptionResponse
+        {
+            Type = ExceptionType.Secure.ToString(),
+            Id = eventId,
+            Data = new Data { Message = ex.Message }
+        };
+
+        await context.Response.WriteAsJsonAsync(response);
+    }
+    private async Task HandleExceptionAsync(HttpContext context, TestDbContext dbContext, Exception ex)
+    {
+        long eventId = await SaveException(context, dbContext, ex, ExceptionType.Exception);
+
+        var response = new ExceptionResponse
+        {
+            Type = ExceptionType.Exception.ToString(),
+            Id = eventId,
+            Data = new Data { Message = $"Internal server error ID = {eventId}" }
+        };
+
+        await context.Response.WriteAsJsonAsync(response);
+    }
+    private static async Task<long> SaveException(HttpContext context, TestDbContext dbContext, Exception ex, ExceptionType type)
     {
         var eventId = DateTime.UtcNow.Ticks;
         var exceptionLog = new ExceptionLog
@@ -43,18 +72,7 @@ public class ExceptionHandlingMiddleware
 
         dbContext.ExceptionLogs.Add(exceptionLog);
         await dbContext.SaveChangesAsync();
-
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        var response = new SecureResponse
-        {
-            Type = Enum.GetName(type),
-            Id = eventId,
-            Data = new Data { Message = ex.Message }
-        };
-
-        await context.Response.WriteAsJsonAsync(response);
+        return eventId;
     }
 }
 public enum ExceptionType
