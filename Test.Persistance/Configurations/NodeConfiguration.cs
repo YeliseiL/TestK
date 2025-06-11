@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using Test.Domain;
-
+namespace Test.Persistence.Configurations;
 public class NodeConfiguration : IEntityTypeConfiguration<Node>
 {
     public void Configure(EntityTypeBuilder<Node> builder)

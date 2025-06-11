@@ -14,4 +14,15 @@ public class TreesController : MediatorBase
     {
         return Ok(await Mediator.Send(r, token));
     }
+    /// <summary>
+    /// Delete tree
+    /// </summary>
+    /// <response code="200"></response>
+    [HttpDelete("id")]
+    public async Task<ActionResult<int>> Delete(int id, DeleteTreeCommand r, CancellationToken token)
+    {
+        r.TreeId = id;
+        await Mediator.Send(r, token);
+        return NoContent();
+    }
 }
